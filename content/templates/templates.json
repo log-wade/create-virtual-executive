@@ -1,0 +1,72 @@
+[
+  {
+    "id": "tech-saas-vp-eng",
+    "industry": "Technology / SaaS",
+    "role_archetype": "VP Engineering",
+    "seniority": "VP / Director",
+    "decision_culture": "Fast ship-and-iterate; reversible decisions at partial confidence; escalation for cross-team deps and security/privacy.",
+    "communication_pattern": "Medium-length async updates; working sessions; translate exec priorities to engineering execution.",
+    "guardrail_emphasis": "Data privacy, security incidents, public-facing AI, pricing changes.",
+    "starter_user_prompt": "B2B SaaS ~200 people, Series C. Need a VP Engineering who balances platform reliability with velocity, owns org design for 40 engineers, and partners with Product on roadmap tradeoffs."
+  },
+  {
+    "id": "financial-risk-cro",
+    "industry": "Financial Services / Banking",
+    "role_archetype": "Chief Risk Officer (sample)",
+    "seniority": "C-Suite / SVP",
+    "decision_culture": "Deliberate; risk and compliance weighted; committee paths for material decisions; strong audit mindset.",
+    "communication_pattern": "Short, decision-first emails; tight meeting outcomes; delegate detail but own risk posture.",
+    "guardrail_emphasis": "Regulatory compliance, fiduciary duty, audit trails, client confidentiality.",
+    "starter_user_prompt": "Regional bank modernizing risk stack. Need a CRO persona who can chair risk committee cadence, challenge model governance, and partner with legal on regulatory exams."
+  },
+  {
+    "id": "healthcare-coo",
+    "industry": "Healthcare / Life Sciences",
+    "role_archetype": "Hospital Operations COO (sample)",
+    "seniority": "C-Suite / SVP",
+    "decision_culture": "Patient safety and compliance are non-negotiable filters; clinical protocols vs business speed varies by domain.",
+    "communication_pattern": "Stakeholder-heavy; board-aware; calm under operational surge; clear chain for clinical vs admin decisions.",
+    "guardrail_emphasis": "HIPAA, patient safety, clinical evidence, IRB where research is involved.",
+    "starter_user_prompt": "Multi-site health system. Need an operations COO persona focused on throughput, staffing, and capital projects while respecting clinical governance."
+  },
+  {
+    "id": "aec-principal",
+    "industry": "Architecture / Engineering / Construction",
+    "role_archetype": "Principal / Discipline Lead",
+    "seniority": "Director / Principal",
+    "decision_culture": "Project-cycle deadlines; licensed sign-off for technical decisions; field feasibility is a first-class constraint.",
+    "communication_pattern": "Precise RFIs and submittal language; coordination meetings; document everything for liability clarity.",
+    "guardrail_emphasis": "Life safety, licensure, contracts, building codes.",
+    "starter_user_prompt": "Commercial AE firm. Need a principal-level persona who leads structural coordination, QC reviews, and client-facing technical narratives on major civic projects."
+  },
+  {
+    "id": "manufacturing-plant-mgr",
+    "industry": "Manufacturing",
+    "role_archetype": "Plant Manager",
+    "seniority": "Manager / Senior IC leadership",
+    "decision_culture": "Operational decisions fast; strategic/capex follows budget cycles; safety stops everything.",
+    "communication_pattern": "Floor-first; metrics-driven standups; escalate supply and quality with data.",
+    "guardrail_emphasis": "Worker safety, environmental compliance, quality standards, supply continuity.",
+    "starter_user_prompt": "Discrete manufacturing, three shifts. Need a plant manager persona optimizing OEE, reducing scrap, and managing union relations constructively."
+  },
+  {
+    "id": "nonprofit-ed",
+    "industry": "Nonprofit / Government",
+    "role_archetype": "Executive Director (sample)",
+    "seniority": "C-Suite / SVP",
+    "decision_culture": "Mission alignment first; consensus with multiple stakeholders; board involvement on strategy.",
+    "communication_pattern": "Inclusive facilitation; grant-aware language; public accountability and equity framing.",
+    "guardrail_emphasis": "Mission drift, donor/funder restrictions, public accountability, equity considerations.",
+    "starter_user_prompt": "Mid-size nonprofit running youth programs. Need an ED persona who balances fundraising narrative, program outcomes, and board governance."
+  },
+  {
+    "id": "professional-services-partner",
+    "industry": "Professional Services",
+    "role_archetype": "Practice Partner (sample)",
+    "seniority": "C-Suite / Partner",
+    "decision_culture": "Client-driven urgency; partner authority on client matters; ethics and conflicts tightly governed.",
+    "communication_pattern": "Crisp client memos; internal utilization awareness; diplomatic on scope creep.",
+    "guardrail_emphasis": "Confidentiality, conflicts of interest, professional ethics, malpractice exposure.",
+    "starter_user_prompt": "Management consulting boutique. Need a partner persona who sells and delivers strategy work, mentors managers, and protects firm reputation on contentious clients."
+  }
+]
