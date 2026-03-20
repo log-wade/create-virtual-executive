@@ -1,9 +1,6 @@
-import { assertAnthropicKey, getAnthropicModel } from "@/lib/config";
-import { getAnthropic } from "@/lib/anthropic";
-import {
-  buildChatSystemPrompt,
-  loadPersonaPackage,
-} from "@/lib/personas/store";
+import { streamExecutiveReply } from "@/lib/executive/stream-reply";
+import { assertAnthropicKey } from "@/lib/config";
+import { loadPersonaPackage } from "@/lib/personas/store";
 
 export const maxDuration = 120;
 
@@ -41,37 +38,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const system = buildChatSystemPrompt(pkg);
-    const anthropic = getAnthropic();
-
-    const stream = anthropic.messages.stream({
-      model: getAnthropicModel(),
-      max_tokens: 4096,
-      system,
-      messages: messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
-    });
-
-    const encoder = new TextEncoder();
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              controller.enqueue(encoder.encode(event.delta.text));
-            }
-          }
-          controller.close();
-        } catch (err) {
-          controller.error(err);
-        }
-      },
-    });
+    const readable = await streamExecutiveReply(personaId, messages);
 
     return new Response(readable, {
       headers: {

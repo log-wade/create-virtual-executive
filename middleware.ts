@@ -18,6 +18,11 @@ const ratelimit = redis
   : null;
 
 export async function middleware(request: NextRequest) {
+  // Twilio webhooks use shared egress IPs; do not rate-limit them with the generic /api bucket.
+  if (request.nextUrl.pathname.startsWith("/api/twilio/")) {
+    return NextResponse.next();
+  }
+
   if (!ratelimit || !request.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.next();
   }

@@ -1,0 +1,12 @@
+{
+  "name": "create-virtual-executive-voice-worker",
+  "private": true,
+  "type": "module",
+  "description": "Long-lived WebSocket host for Twilio Media Streams (Phase D follow-up). The inbound MVP uses Next.js /api/twilio/voice* with Twilio <Gather speech>.",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

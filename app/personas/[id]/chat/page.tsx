@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ChatPanel } from "@/components/ChatPanel";
+import { PersonaChatSection } from "@/components/personas/PersonaChatSection";
 import { getPersonaMeta } from "@/lib/personas/store";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -12,7 +12,7 @@ export default async function PersonaChatPage({ params }: PageProps) {
   if (!meta) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
       <p className="text-sm text-zinc-500">
         <Link href={`/personas/${id}`} className="underline">
           {meta.name}
@@ -25,9 +25,7 @@ export default async function PersonaChatPage({ params }: PageProps) {
         Messages use Claude with this persona&apos;s full skill package as
         system context.
       </p>
-      <div className="mt-6">
-        <ChatPanel personaId={id} />
-      </div>
+      <PersonaChatSection personaId={id} />
     </main>
   );
 }

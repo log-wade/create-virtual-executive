@@ -1,0 +1,9 @@
+{
+  "contextPath": "context.md",
+  "outcomesPath": "outcomes",
+  "maxParallelTasks": 2,
+  "subagentDriven": true,
+  "targetProducts": [
+    "create-virtual-executive"
+  ]
+}
