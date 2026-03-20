@@ -2,12 +2,12 @@
 
 ## Current Goal
 
-Product polish (VRM, visemes, drei) or **full** Media Streams pipeline (μ-law ↔ STT ↔ Claude ↔ TTS).
+Product polish (VRM, visemes, drei) and **hardening** Media Streams (optional VAD, duplicate finals).
 
 ## Pending Tasks
 
 - [ ] Optional - VRM, real visemes, `@react-three/drei` when deps install cleanly.
-- [ ] Optional - End-to-end Media Streams audio (decode, STT, TTS outbound frames).
+- [ ] Optional - Media Streams: VAD / Deepgram event-driven gating.
 
 ## Done (reference)
 
@@ -16,6 +16,15 @@ Product polish (VRM, visemes, drei) or **full** Media Streams pipeline (μ-law �
 - [x] D1-hardening - CallSid + Upstash conversation memory + optional status webhook — `outcomes/2026-03-20-cycle10-phone-session.md`.
 - [x] D2 - TwiML speech barge-in + admin outbound Calls API — `outcomes/2026-03-20-cycle11-D2.md`.
 - [x] Media Streams WebSocket skeleton + outbound bearer hardening — `outcomes/2026-03-20-cycle12-media-streams-skeleton.md`.
+- [x] Media Streams E2E prototype (μ-law decode, Deepgram, complete + ulaw TTS outbound) — `outcomes/2026-03-20-cycle14-media-streams-pipeline.md`.
+- [x] Media Streams + Upstash call memory (`callSid` on `/api/chat/complete`) — `outcomes/2026-03-20-cycle15-media-streams-call-memory.md`.
+- [x] Media Streams outbound barge-in (energy gate + grace) — `outcomes/2026-03-20-cycle16-media-streams-barge-in.md`.
+- [x] Media Streams Deepgram **live** STT (default) + `VOICE_STREAM_STT_MODE=rest` fallback — `outcomes/2026-03-20-cycle17-media-streams-stt-live.md`.
+- [x] Deepgram live **auto-reconnect** (session id + intentional close) — `outcomes/2026-03-20-cycle18-deepgram-live-reconnect.md`.
+- [x] Media Streams **half-duplex STT** during outbound TTS + `VOICE_STREAM_STT_DUPLEX=full` escape hatch — `outcomes/2026-03-20-cycle19-media-streams-half-duplex-stt.md`.
+- [x] **Post-playback STT tail** (echo after TTS) + barge-in clears tail — `outcomes/2026-03-20-cycle20-media-streams-post-playback-stt-tail.md`.
+- [x] Middleware **rate-limit bypass** for authenticated voice worker on `/api/tts` + `/api/chat/complete` — `outcomes/2026-03-20-cycle21-voice-worker-rate-limit-bypass.md`.
+- [x] Voice worker **`GET /health`** + **final dedupe** tuning (`VOICE_STREAM_FINAL_DEDUPE_MS`) — `outcomes/2026-03-20-cycle22-voice-worker-health-dedupe.md`.
 
 ## Recent Outcomes
 
@@ -41,6 +50,15 @@ Product polish (VRM, visemes, drei) or **full** Media Streams pipeline (μ-law �
 | 2026-03-20 | Phone CallSid session (Redis) | Completed | Upstash-backed history in gather + `/api/twilio/voice/status` cleanup. Outcome: `outcomes/2026-03-20-cycle10-phone-session.md`. |
 | 2026-03-20 | D2 - Barge-in + outbound | Completed | Nested Say in Gather; `personaId` on gather URL; `POST /api/admin/twilio/outbound`. Outcome: `outcomes/2026-03-20-cycle11-D2.md`. |
 | 2026-03-20 | Media Streams skeleton + bearer hardening | Completed | `voice-worker` parses Twilio stream events; timing-safe outbound secret. Outcome: `outcomes/2026-03-20-cycle12-media-streams-skeleton.md`. |
+| 2026-03-20 | Media Streams pipeline (cycle 14) | Completed | μ-law → Deepgram → `/api/chat/complete` → ElevenLabs `ulaw_8000` → outbound `media`; optional WS token + internal Bearer. Outcome: `outcomes/2026-03-20-cycle14-media-streams-pipeline.md`. |
+| 2026-03-20 | Media Streams call memory (cycle 15) | Completed | `callSid` + `X-Voice-Worker` on `/api/chat/complete` merges/persists Upstash; worker forwards Twilio `CallSid`. Outcome: `outcomes/2026-03-20-cycle15-media-streams-call-memory.md`. |
+| 2026-03-20 | Media Streams barge-in (cycle 16) | Completed | Outbound μ-law canceled on inbound speech energy after grace; env tunables. Outcome: `outcomes/2026-03-20-cycle16-media-streams-barge-in.md`. |
+| 2026-03-20 | Media Streams live STT (cycle 17) | Completed | Deepgram WebSocket streaming + prefetch until open; utterance queue; `rest` batch mode retained. Outcome: `outcomes/2026-03-20-cycle17-media-streams-stt-live.md`. |
+| 2026-03-20 | Deepgram live reconnect (cycle 18) | Completed | Backoff reconnect on unexpected close; `dgSessionId` avoids stale `onClose`; Twilio stop = intentional. Outcome: `outcomes/2026-03-20-cycle18-deepgram-live-reconnect.md`. |
+| 2026-03-20 | Half-duplex STT (cycle 19) | Completed | No PCM to Deepgram during assistant playback unless barge-in; `STT_DUPLEX=full` restores full duplex. Outcome: `outcomes/2026-03-20-cycle19-media-streams-half-duplex-stt.md`. |
+| 2026-03-20 | Post-playback STT tail (cycle 20) | Completed | `sttBlockedUntilMs` after normal TTS; barge-in + `start`/intentional close reset. Outcome: `outcomes/2026-03-20-cycle20-media-streams-post-playback-stt-tail.md`. |
+| 2026-03-20 | Voice worker rate-limit bypass (cycle 21) | Completed | Edge-safe `voice-worker-middleware-auth` + middleware skip for `/api/tts` + `/api/chat/complete`. Outcome: `outcomes/2026-03-20-cycle21-voice-worker-rate-limit-bypass.md`. |
+| 2026-03-20 | Health + final dedupe (cycle 22) | Completed | `GET /health` JSON; normalized + prefix duplicate suppression for Deepgram finals. Outcome: `outcomes/2026-03-20-cycle22-voice-worker-health-dedupe.md`. |
 
 ## Learnings
 
@@ -65,3 +83,14 @@ Product polish (VRM, visemes, drei) or **full** Media Streams pipeline (μ-law �
 - Put **`personaId` on Twilio `<Gather action>` URLs** when Redis may be absent so outbound calls and serverless cold paths still resolve the executive.
 - Keep **admin-only** Twilio REST routes off `/api/twilio/` so they stay on the normal API rate-limit bucket.
 - Use **timing-safe** comparison for static admin bearer tokens to avoid subtle string-equality timing leaks.
+- Voice worker → Next: use **`X-Voice-Worker: 1` + Bearer** only when `INTERNAL_VOICE_WORKER_SECRET` is set so browser `/api/tts` stays unauthenticated.
+- ElevenLabs **`output_format=ulaw_8000`** matches Twilio Media Streams outbound **μ-law @ 8 kHz** without re-encoding MP3 in the worker.
+- **`callSid` on `/api/chat/complete`** is only honored with **`X-Voice-Worker: 1`** so browser clients cannot attach to arbitrary Twilio calls; pair with **`INTERNAL_VOICE_WORKER_SECRET`** in production.
+- **Stream barge-in** uses **peak PCM per 20 ms frame** so continuous silent μ-law frames do not instantly truncate TTS; threshold and grace are env-tunable per deployment.
+- **Deepgram live** connects on Twilio `start`; **prefetch** linear16 until the socket is open so early audio is not dropped; finals are **deduped** (~900 ms window) before enqueueing assistant turns.
+- **Deepgram reconnect** uses a monotonic **`dgSessionId`** so closing/replacing the socket on a new Twilio `start` does not trigger backoff from the previous generation’s `onClose`.
+- **Half-duplex STT** pairs with **barge-in**: user audio is dropped from Deepgram only while `outboundPlaybackActive`; energy-based barge-in flips `outboundAbortPlayback` so STT resumes before playback fully ends.
+- **Post-playback STT tail** only applies when playback **completes without barge-in**; otherwise callers who interrupted would still be muted for hundreds of ms.
+- With **`INTERNAL_VOICE_WORKER_SECRET`**, rate-limit bypass requires **valid Bearer** + **`X-Voice-Worker: 1`** so random clients cannot skip limits by spoofing the header alone.
+- **Middleware** runs on **Edge** — do not import `node:crypto`; use **`voice-worker-middleware-auth.ts`** (UTF-8 timing-safe compare) for worker checks there.
+- **Deepgram final dedupe** stores a **normalized key** (lower + collapsed whitespace) and skips **strict shorter prefixes** of the last final within the window so “Hello” after “Hello world” does not enqueue twice.

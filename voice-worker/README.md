@@ -1,4 +1,8 @@
-# Voice worker (stub)
+# Voice worker (Media Streams)
+
+When **`INTERNAL_VOICE_WORKER_SECRET`** is set on the Next app, the worker’s **`POST /api/tts`** and **`POST /api/chat/complete`** calls skip the **generic** IP rate limit (`middleware.ts`) so long calls are not 429’d for burst TTS/completions.
+
+**Health:** `GET /health` (or **`VOICE_WORKER_HEALTH_PATH`**) returns JSON for probes. **Deduping:** **`VOICE_STREAM_FINAL_DEDUPE_MS`** drops repeated / shorter-prefix finals from Deepgram within a time window (case- and whitespace-normalized).
 
 ## Current MVP (no worker required)
 
@@ -19,9 +23,15 @@ In Twilio Console → Phone Numbers → your number → **A call comes in** → 
 
 ## This package
 
-`server.mjs` runs an HTTP server plus a **WebSocket** listener that **parses Twilio Media Streams** JSON (`connected`, `start`, `media`, `mark`, `stop`) and logs frame counts. It does **not** yet decode μ-law, STT, or send outbound audio — see **[`docs/twilio-media-streams.md`](../docs/twilio-media-streams.md)** for TwiML wiring and next steps.
+`server.mjs` runs HTTP + **WebSocket** for Twilio **Media Streams**. It decodes inbound **μ-law** and, by default, streams **linear16 @ 8 kHz** to **Deepgram live** (`deepgram-live.mjs`); finals enqueue **`POST /api/chat/complete`** → **`POST /api/tts`** (`ulaw_8000`) → outbound **`media`** (~20 ms). Use **`VOICE_STREAM_STT_MODE=rest`** for the older batched HTTP STT. See **[`docs/twilio-media-streams.md`](../docs/twilio-media-streams.md)** for env vars (`APP_BASE_URL`, `DEEPGRAM_API_KEY`, …).
 
-**Speech barge-in** for the Gather MVP lives in Next.js (`TWILIO_VOICE_BARGE_IN`). **Stream-level** TTS cancel / raw-audio pipelines belong here once you `<Connect><Stream>` to this worker.
+**Speech barge-in** for the Gather MVP lives in Next.js (`TWILIO_VOICE_BARGE_IN`). With **Upstash** on the Next app, the worker passes **`callSid`** into **`/api/chat/complete`** so **Gather and Media Streams share the same conversation** (`lib/twilio/call-conversation.ts`). **Media Streams barge-in** (`VOICE_STREAM_BARGE_IN`, default on) stops sending outbound μ-law when inbound frames show speech energy after a grace window — tune **`VOICE_STREAM_BARGE_IN_PCM_THRESHOLD`** if needed.
+
+**Deepgram live reconnect:** if the STT WebSocket drops mid-call, the worker schedules **exponential backoff** reconnects (see **`VOICE_STREAM_DG_RECONNECT_*`**). Twilio **`stop`** / worker disconnect sets an **intentional** shutdown so stale sockets do not respawn.
+
+**Half-duplex STT (default):** inbound audio is **not** sent to Deepgram while assistant μ-law is playing; **barge-in** re-enables forwarding. Use **`VOICE_STREAM_STT_DUPLEX=full`** if you need full duplex (more echo risk).
+
+**Post-playback tail:** after TTS finishes **without** barge-in, STT ingress stays off for **`VOICE_STREAM_POST_PLAYBACK_STT_TAIL_MS`** (default 280 ms). Barge-in clears this so the caller is not gated.
 
 Serverless is a poor fit for long WebSockets; deploy on Fly.io, Railway, etc.
 
@@ -32,9 +42,11 @@ pnpm start
 
 Default port **8765** (`VOICE_WORKER_PORT`).
 
-## Security (next steps)
+## Security
 
-- Twilio signatures and **CallSid + Upstash** multi-turn history are implemented on the Next.js app (`/api/twilio/voice*`). This worker remains for **Media Streams** audio.
+- Optional **query token**: `TWILIO_MEDIA_STREAM_SECRET` → connect only with `wss://…?token=…`.
+- Optional **app auth**: set `INTERNAL_VOICE_WORKER_SECRET` on Next **and** this worker; worker sends `X-Voice-Worker: 1` + `Authorization: Bearer …`.
+- Twilio **HTTP** webhooks still use **X-Twilio-Signature** on `/api/twilio/voice*` in the Next app.
 
 ## Session memory
 

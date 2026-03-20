@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
-import { MAX_TTS_INPUT_CHARS, synthesizeSpeech } from "@/lib/voice/tts";
+import { voiceWorkerUnauthorized } from "@/lib/internal/voice-worker-auth";
+import {
+  MAX_TTS_INPUT_CHARS,
+  synthesizeSpeech,
+  type ElevenLabsOutputFormat,
+} from "@/lib/voice/tts";
 
 export const maxDuration = 60;
+
+const OUTPUT_FORMATS = new Set<ElevenLabsOutputFormat>([
+  "mp3_44100_128",
+  "ulaw_8000",
+]);
 
 type Body = {
   text?: string;
   /** Reserved for future per-persona voice routing; ignored for synthesis v1. */
   personaId?: string;
+  /** Default `mp3_44100_128`. Use `ulaw_8000` for Twilio Media Streams outbound. */
+  outputFormat?: string;
 };
 
 function isConfigError(message: string): boolean {
@@ -18,6 +30,9 @@ function isConfigError(message: string): boolean {
 
 export async function POST(req: Request) {
   try {
+    const denied = voiceWorkerUnauthorized(req);
+    if (denied) return denied;
+
     let body: Body;
     try {
       body = (await req.json()) as Body;
@@ -39,12 +54,22 @@ export async function POST(req: Request) {
       );
     }
 
-    const audio = await synthesizeSpeech(trimmed);
+    const rawFormat =
+      typeof body.outputFormat === "string" ? body.outputFormat.trim() : "";
+    const outputFormat: ElevenLabsOutputFormat =
+      rawFormat && OUTPUT_FORMATS.has(rawFormat as ElevenLabsOutputFormat)
+        ? (rawFormat as ElevenLabsOutputFormat)
+        : "mp3_44100_128";
+
+    const audio = await synthesizeSpeech(trimmed, { outputFormat });
+
+    const contentType =
+      outputFormat === "ulaw_8000" ? "audio/basic" : "audio/mpeg";
 
     return new NextResponse(audio, {
       status: 200,
       headers: {
-        "Content-Type": "audio/mpeg",
+        "Content-Type": contentType,
         "Cache-Control": "no-store",
       },
     });

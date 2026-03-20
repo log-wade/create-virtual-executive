@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { isVoiceWorkerRequestAuthenticated } from "@/lib/internal/voice-worker-middleware-auth";
 
 const redis =
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
@@ -24,6 +25,14 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!ratelimit || !request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
+  const path = request.nextUrl.pathname;
+  if (
+    (path === "/api/tts" || path === "/api/chat/complete") &&
+    isVoiceWorkerRequestAuthenticated(request)
+  ) {
     return NextResponse.next();
   }
 

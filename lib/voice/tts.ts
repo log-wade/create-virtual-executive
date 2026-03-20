@@ -10,9 +10,14 @@ export const MAX_TTS_INPUT_CHARS = 5_000;
 
 const ELEVENLABS_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech";
 
+/** ElevenLabs `output_format` query values we expose to callers. */
+export type ElevenLabsOutputFormat = "mp3_44100_128" | "ulaw_8000";
+
 export type SynthesizeSpeechOptions = {
   /** Overrides `ELEVENLABS_VOICE_ID` when set. */
   voiceId?: string;
+  /** Telephony / Twilio Media Streams use `ulaw_8000`. Default: MP3 for web. */
+  outputFormat?: ElevenLabsOutputFormat;
 };
 
 /**
@@ -44,13 +49,21 @@ export async function synthesizeSpeech(
     body.model_id = modelId;
   }
 
-  const url = `${ELEVENLABS_TTS_URL}/${encodeURIComponent(voiceId)}`;
-  const response = await fetch(url, {
+  const outputFormat = options.outputFormat ?? "mp3_44100_128";
+  const url = new URL(
+    `${ELEVENLABS_TTS_URL}/${encodeURIComponent(voiceId)}`,
+  );
+  url.searchParams.set("output_format", outputFormat);
+
+  const accept =
+    outputFormat === "ulaw_8000" ? "application/octet-stream" : "audio/mpeg";
+
+  const response = await fetch(url.toString(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "xi-api-key": apiKey,
-      Accept: "audio/mpeg",
+      Accept: accept,
     },
     body: JSON.stringify(body),
   });

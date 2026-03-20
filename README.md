@@ -78,7 +78,7 @@ curl -sS -X POST "$PUBLIC_BASE_URL/api/admin/twilio/outbound" \
 
 Routes under `/api/twilio/` are **excluded** from optional Upstash `/api` rate limiting so shared Twilio IPs are not throttled.
 
-A separate **`voice-worker/`** process handles **Twilio Media Streams** WebSockets (skeleton that parses `media` frames); see **`voice-worker/README.md`** and **`docs/twilio-media-streams.md`**.
+A separate **`voice-worker/`** process can run **Twilio Media Streams** (μ-law ↔ **Deepgram live** or batched STT ↔ `/api/chat/complete` ↔ ElevenLabs `ulaw_8000` outbound, with **barge-in** and default **half-duplex STT** during playback); see **`voice-worker/README.md`** and **`docs/twilio-media-streams.md`**.
 
 ## Optional: API rate limiting
 
